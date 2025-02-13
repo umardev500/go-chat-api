@@ -1,0 +1,6 @@
+# Ingore injector generated files
+internal/injector/*_gen.go
+
+# Air
+tmp
+.air.toml
