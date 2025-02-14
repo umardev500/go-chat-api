@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog/log"
@@ -55,6 +56,14 @@ func (s *chatService) FindChatList(ctx context.Context, jid, csid string) *model
 }
 
 func (s *chatService) PushMessage(ctx context.Context, jid, csid string, pushChat *domain.PushChat) *model.Response {
+	// Convert interface{} to a map[string]interface{} if it's a valid map
+	if msgMap, ok := pushChat.Data.Message.(map[string]interface{}); ok {
+		// Check if "timestamp" exists
+		if _, exists := msgMap["timestamp"]; !exists {
+			msgMap["timestamp"] = time.Now().UTC().Unix() // Append timestamp if missing
+		}
+	}
+
 	chatData := domain.CreateChat{
 		Jid:      jid,
 		Csid:     csid,
