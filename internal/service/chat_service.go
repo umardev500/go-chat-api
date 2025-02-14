@@ -76,7 +76,7 @@ func (s *chatService) PushMessage(ctx context.Context, jid, csid string, pushCha
 			return utils.CrateResponse(fiber.StatusInternalServerError, "Failed to push chat", nil)
 		}
 	} else {
-		pushChat.Data.IsInitial = exist
+		pushChat.Data.IsInitial = true
 		pushChat.Data.InitialChat = &domain.Chat{
 			Jid:     jid,
 			Csid:    csid,

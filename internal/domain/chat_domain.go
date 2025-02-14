@@ -28,7 +28,7 @@ type PushChat struct {
 }
 
 type PushChatData struct {
-	IsInitial   bool        `json:"is_initial"`
-	InitialChat *Chat       `json:"initial_chat,omitempty"`
+	IsInitial   bool        `json:"isInitial"`
+	InitialChat *Chat       `json:"initialChat,omitempty"`
 	Message     interface{} `json:"message,omitempty"`
 }
