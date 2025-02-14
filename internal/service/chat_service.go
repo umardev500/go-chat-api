@@ -60,7 +60,9 @@ func (s *chatService) PushMessage(ctx context.Context, jid, csid string, pushCha
 	if msgMap, ok := pushChat.Data.Message.(map[string]interface{}); ok {
 		// Check if "timestamp" exists
 		if _, exists := msgMap["timestamp"]; !exists {
-			msgMap["timestamp"] = time.Now().UTC().Unix() // Append timestamp if missing
+			// Append timestamp if missing
+			// this needed if the message is come from our app not come from whatsapp
+			msgMap["timestamp"] = time.Now().UTC().Unix()
 		}
 	}
 
