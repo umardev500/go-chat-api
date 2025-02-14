@@ -77,7 +77,14 @@ func (s *chatService) PushMessage(ctx context.Context, jid, csid string, pushCha
 		}
 	} else {
 		pushChat.Data.IsInitial = exist
-		pushChat.Data.InitialChat = chatData
+		pushChat.Data.InitialChat = &domain.Chat{
+			Jid:     jid,
+			Csid:    csid,
+			Status:  string(domain.ChatStatusQueued),
+			Unread:  1,
+			Message: pushChat.Data.Message,
+		}
+		pushChat.Data.Message = nil
 	}
 
 	// TODO: broadcast to the gprc client
