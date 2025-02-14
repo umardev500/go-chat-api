@@ -8,8 +8,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog/log"
 	"github.com/umardev500/gochat/internal/domain"
-	"github.com/umardev500/gochat/internal/domain/utils"
 	"github.com/umardev500/gochat/internal/service"
+	"github.com/umardev500/gochat/internal/utils"
 )
 
 type ChatHandler interface {

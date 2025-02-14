@@ -2,12 +2,15 @@ package service
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/rs/zerolog/log"
 	"github.com/umardev500/common/model"
 	"github.com/umardev500/common/utils"
 	"github.com/umardev500/gochat/internal/domain"
 	"github.com/umardev500/gochat/internal/repository"
+	localUtils "github.com/umardev500/gochat/internal/utils"
 )
 
 type ChatService interface {
@@ -27,6 +30,16 @@ func NewChatService(repo repository.ChatRepository) ChatService {
 	}
 }
 
+func (s *chatService) broadcast(socketId string, chat *domain.PushChat) {
+	conn := localUtils.WsGetClient(socketId)
+	if conn == nil {
+		log.Error().Msgf("Websocket client not found: %s", socketId)
+		return
+	}
+
+	conn.WriteJSON(chat)
+}
+
 func (s *chatService) FindChatList(ctx context.Context, jid, csid string) *model.Response {
 	if csid == "" {
 		return utils.CrateResponse(fiber.StatusBadRequest, "Csid is required", nil)
@@ -34,6 +47,7 @@ func (s *chatService) FindChatList(ctx context.Context, jid, csid string) *model
 
 	chats, err := s.chatRepo.FindChats(ctx, jid, csid)
 	if err != nil {
+		fmt.Println(err)
 		return utils.CrateResponse(fiber.StatusInternalServerError, "Failed to find chat list", nil)
 	}
 
@@ -41,7 +55,7 @@ func (s *chatService) FindChatList(ctx context.Context, jid, csid string) *model
 }
 
 func (s *chatService) PushMessage(ctx context.Context, jid, csid string, pushChat *domain.PushChat) *model.Response {
-	chatData := domain.Chat{
+	chatData := domain.CreateChat{
 		Jid:      jid,
 		Csid:     csid,
 		Status:   string(domain.ChatStatusQueued),
@@ -67,6 +81,7 @@ func (s *chatService) PushMessage(ctx context.Context, jid, csid string, pushCha
 	}
 
 	// TODO: broadcast to the gprc client
+	s.broadcast(csid, pushChat)
 
 	return utils.CrateResponse(fiber.StatusOK, "Push chat", nil)
 }

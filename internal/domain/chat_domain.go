@@ -7,11 +7,19 @@ const (
 )
 
 type Chat struct {
+	Jid     string      `json:"jid"`
+	Csid    string      `json:"csid"`
+	Status  string      `json:"status"`
+	Unread  int         `json:"unread"`
+	Message interface{} `json:"message"`
+}
+
+type CreateChat struct {
 	Jid      string        `json:"jid"`
 	Csid     string        `json:"csid"`
 	Status   string        `json:"status"`
 	Unread   int           `json:"unread"`
-	Messages []interface{} `json:"message"`
+	Messages []interface{} `json:"messages"`
 }
 
 type PushChat struct {
@@ -21,6 +29,6 @@ type PushChat struct {
 
 type PushChatData struct {
 	IsInitial   bool        `json:"-"`
-	InitialChat Chat        `json:"-"`
+	InitialChat CreateChat  `json:"-"`
 	Message     interface{} `json:"message"`
 }
