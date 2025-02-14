@@ -10,17 +10,29 @@ import (
 )
 
 type ChatRepository interface {
+	CheckChatIsExist(ctx context.Context, jid, csid string) error
 	FindChats(ctx context.Context, jid, csid string) ([]domain.Chat, error)
+	CreateChat(ctx context.Context, jid, csid string, chat interface{}) (bool, error)
+	PushMessage(ctx context.Context, jid, csid string, message interface{}) error
+	UpdateUnread(ctx context.Context, jid, csid string, value int64) error
 }
 
 type chatRepository struct {
 	mongDB *database.Mongo
+	coll   *mongo.Collection
 }
 
 func NewChatRepository(db *database.Mongo) ChatRepository {
 	return &chatRepository{
 		mongDB: db,
+		coll:   db.Db.Collection("messages"),
 	}
+}
+
+func (r *chatRepository) CheckChatIsExist(ctx context.Context, jid, csid string) error {
+	filter := bson.M{"jid": jid, "csid": csid}
+	err := r.coll.FindOne(ctx, filter).Err()
+	return err
 }
 
 func (r *chatRepository) FindChats(ctx context.Context, jid, csid string) ([]domain.Chat, error) {
@@ -87,4 +99,62 @@ func (r *chatRepository) FindChats(ctx context.Context, jid, csid string) ([]dom
 	}
 
 	return chats, nil
+}
+
+func (r *chatRepository) CreateChat(ctx context.Context, jid, csid string, chat interface{}) (bool, error) {
+	filter := bson.M{"jid": jid, "csid": csid}
+
+	err := r.coll.FindOne(ctx, filter).Err()
+	if err == nil {
+		// Chat exists
+		return true, nil
+	}
+	if err == mongo.ErrNoDocuments {
+		// Chat does not exist, so create it
+		_, err = r.coll.InsertOne(ctx, chat)
+		return false, err
+	}
+
+	// Return error if something went wrong
+	return false, err
+}
+
+func (r *chatRepository) PushMessage(ctx context.Context, jid, csid string, message interface{}) error {
+	filter := bson.D{
+		{Key: "jid", Value: jid},
+		{Key: "csid", Value: csid},
+	}
+
+	update := bson.D{
+		{Key: "$push", Value: bson.D{
+			{Key: "messages", Value: message},
+		}},
+	}
+
+	_, err := r.coll.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *chatRepository) UpdateUnread(ctx context.Context, jid, csid string, value int64) error {
+	filter := bson.D{
+		{Key: "jid", Value: jid},
+		{Key: "csid", Value: csid},
+	}
+
+	update := bson.D{
+		{Key: "$inc", Value: bson.D{
+			{Key: "unread", Value: value},
+		}},
+	}
+
+	_, err := r.coll.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
