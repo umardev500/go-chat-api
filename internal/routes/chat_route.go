@@ -13,6 +13,8 @@ type ChatRouteImpl struct {
 func (r *ChatRouteImpl) Api(router fiber.Router) {
 	chat := router.Group("/chat")
 	chat.Get("/", r.chatHandler.FetchChatList)
+	chat.Patch("/update-unread", r.chatHandler.UpdateUnread)
+	chat.Post("/push-message", r.chatHandler.PushMessage)
 }
 
 func (r *ChatRouteImpl) Web(router fiber.Router) {}

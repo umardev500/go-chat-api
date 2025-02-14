@@ -40,7 +40,7 @@ func (h *chatHandler) FetchChatList(c *fiber.Ctx) error {
 func (h *chatHandler) PushMessage(c *fiber.Ctx) error {
 	var request domain.PushChat
 	if err := c.BodyParser(&request); err != nil {
-		return fiber.ErrBadRequest
+		return err
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -48,6 +48,10 @@ func (h *chatHandler) PushMessage(c *fiber.Ctx) error {
 
 	jid := c.Query("jid")
 	csid := c.Query("csid")
+
+	if jid == "" || csid == "" {
+		return fiber.ErrBadRequest
+	}
 
 	resp := h.chatService.PushMessage(ctx, jid, csid, &request)
 
@@ -60,7 +64,7 @@ func (h *chatHandler) UpdateUnread(c *fiber.Ctx) error {
 
 	jid := c.Query("jid")
 	csid := c.Query("csid")
-	value := c.QueryInt("value")
+	value := c.QueryInt("value", 1)
 
 	resp := h.chatService.UpdateUnread(ctx, jid, csid, int64(value))
 

@@ -42,11 +42,11 @@ func (s *chatService) FindChatList(ctx context.Context, jid, csid string) *model
 
 func (s *chatService) PushMessage(ctx context.Context, jid, csid string, pushChat *domain.PushChat) *model.Response {
 	chatData := domain.Chat{
-		Jid:     jid,
-		Csid:    csid,
-		Status:  string(domain.ChatStatusQueued),
-		Unread:  1, // Unread is 1 if the first message isn't from customer service
-		Message: pushChat.Data,
+		Jid:      jid,
+		Csid:     csid,
+		Status:   string(domain.ChatStatusQueued),
+		Unread:   1, // Unread is 1 if the first message isn't from customer service
+		Messages: []interface{}{pushChat.Data.Message},
 	}
 
 	// Check if this is the first message in the chat
@@ -55,13 +55,13 @@ func (s *chatService) PushMessage(ctx context.Context, jid, csid string, pushCha
 		return utils.CrateResponse(fiber.StatusInternalServerError, "Failed to create chat", nil)
 	}
 
-	// Push the message only after creating the chat
-	err = s.chatRepo.PushMessage(ctx, jid, csid, pushChat)
-	if err != nil {
-		return utils.CrateResponse(fiber.StatusInternalServerError, "Failed to push chat", nil)
-	}
-
 	if exist {
+		// Push the message only if the chat exists
+		err = s.chatRepo.PushMessage(ctx, jid, csid, pushChat.Data.Message)
+		if err != nil {
+			return utils.CrateResponse(fiber.StatusInternalServerError, "Failed to push chat", nil)
+		}
+	} else {
 		pushChat.Data.IsInitial = exist
 		pushChat.Data.InitialChat = chatData
 	}
