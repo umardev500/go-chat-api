@@ -77,6 +77,7 @@ func (h *chatHandler) UpdateUnread(c *fiber.Ctx) error {
 
 func (h *chatHandler) WsHandler(c *websocket.Conn) {
 	id := c.Locals("id").(string)
+	utils.WsAddClient(id, c)
 
 	var (
 		err error
