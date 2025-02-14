@@ -4,8 +4,11 @@ import (
 	"context"
 	"time"
 
+	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
+	"github.com/rs/zerolog/log"
 	"github.com/umardev500/gochat/internal/domain"
+	"github.com/umardev500/gochat/internal/domain/utils"
 	"github.com/umardev500/gochat/internal/service"
 )
 
@@ -13,6 +16,7 @@ type ChatHandler interface {
 	FetchChatList(c *fiber.Ctx) error
 	PushMessage(c *fiber.Ctx) error
 	UpdateUnread(c *fiber.Ctx) error
+	WsHandler(c *websocket.Conn)
 }
 
 type chatHandler struct {
@@ -69,4 +73,23 @@ func (h *chatHandler) UpdateUnread(c *fiber.Ctx) error {
 	resp := h.chatService.UpdateUnread(ctx, jid, csid, int64(value))
 
 	return c.Status(resp.StatusCode).JSON(resp)
+}
+
+func (h *chatHandler) WsHandler(c *websocket.Conn) {
+	id := c.Locals("id").(string)
+
+	var (
+		err error
+	)
+
+	log.Info().Msgf("Client connected: %s", id)
+
+	for {
+		_, _, err = c.ReadMessage()
+		if err != nil {
+			log.Error().Msgf("Failed to read message: %v", err)
+			utils.WsRemoveClient(id)
+			break
+		}
+	}
 }
