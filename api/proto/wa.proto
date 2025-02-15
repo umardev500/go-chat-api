@@ -10,6 +10,10 @@ service WaService {
 
 message SendMessageRequest {
     Metadata Metadata = 1;
+    oneof message {
+        TextMessage textMessage = 2;
+        ImageMessage imageMessage = 3;
+    }
 }
 
 message SendMessageResponse {
