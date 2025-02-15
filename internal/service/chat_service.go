@@ -56,9 +56,7 @@ func (s *chatService) FindChatList(ctx context.Context, jid, csid string) *model
 }
 
 func (s *chatService) PushMessage(ctx context.Context, jid, csid string, pushChat *domain.PushChat) *model.Response {
-	// Convert interface{} to a map[string]interface{} if it's a valid map
 	if msgMap, ok := pushChat.Data.Message.(map[string]interface{}); ok {
-		// Check if "timestamp" exists
 		if _, exists := msgMap["timestamp"]; !exists {
 			// Append timestamp if missing
 			// this needed if the message is come from our app not come from whatsapp
@@ -74,14 +72,12 @@ func (s *chatService) PushMessage(ctx context.Context, jid, csid string, pushCha
 		Messages: []interface{}{pushChat.Data.Message},
 	}
 
-	// Check if this is the first message in the chat
 	exist, err := s.chatRepo.CreateChat(ctx, jid, csid, chatData)
 	if err != nil {
 		return utils.CrateResponse(fiber.StatusInternalServerError, "Failed to create chat", nil)
 	}
 
 	if exist {
-		// Push the message only if the chat exists
 		err = s.chatRepo.PushMessage(ctx, jid, csid, pushChat.Data.Message)
 		if err != nil {
 			return utils.CrateResponse(fiber.StatusInternalServerError, "Failed to push chat", nil)
@@ -98,7 +94,6 @@ func (s *chatService) PushMessage(ctx context.Context, jid, csid string, pushCha
 		pushChat.Data.Message = nil
 	}
 
-	// TODO: broadcast to the gprc client
 	s.broadcast(csid, pushChat)
 
 	return utils.CrateResponse(fiber.StatusOK, "Push chat", nil)
