@@ -21,11 +21,12 @@ message SendMessageResponse {
 }
 
 message Metadata {
-    string jid = 1;
-    string fromMe = 2;
-    string id = 3;
-    string pushName = 4;
-    int64 timestamp = 5;
+    string type = 1;
+    string jid = 2;
+    string fromMe = 3;
+    string id = 4;
+    string pushName = 5;
+    int64 timestamp = 6;
 }
 
 message TextMessage {
