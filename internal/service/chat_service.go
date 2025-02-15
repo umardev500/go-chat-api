@@ -64,7 +64,7 @@ func (s *chatService) PushMessage(ctx context.Context, jid, csid string, pushCha
 		}
 	}
 
-	chatData := domain.CreateChat{
+	initialChatData := domain.CreateChat{
 		Jid:      jid,
 		Csid:     csid,
 		Status:   string(domain.ChatStatusQueued),
@@ -72,7 +72,7 @@ func (s *chatService) PushMessage(ctx context.Context, jid, csid string, pushCha
 		Messages: []interface{}{pushChat.Data.Message},
 	}
 
-	exist, err := s.chatRepo.CreateChat(ctx, jid, csid, chatData)
+	exist, err := s.chatRepo.CreateChat(ctx, jid, csid, initialChatData)
 	if err != nil {
 		return utils.CrateResponse(fiber.StatusInternalServerError, "Failed to create chat", nil)
 	}
