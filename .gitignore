@@ -4,3 +4,6 @@ internal/injector/*_gen.go
 # Air
 tmp
 .air.toml
+
+# Exlude generated proto
+api/proto/*pb.go
