@@ -1,8 +1,10 @@
 package main
 
 import (
+	"context"
 	"net"
 	"os"
+	"os/signal"
 
 	"github.com/joho/godotenv"
 	"github.com/rs/zerolog"
@@ -37,7 +39,13 @@ func main() {
 
 	// Match gRPC and HTTP connections
 	grpcL := m.MatchWithWriters(cmux.HTTP2MatchHeaderFieldSendSettings("content-type", "application/grpc"))
-	// httpL := m.Match(cmux.HTTP1Fast())
+	httpL := m.Match(cmux.HTTP1Fast())
+
+	go func() {
+		ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, os.Kill)
+		defer cancel()
+		injector.InitializeHttpServer(httpL).Start(ctx)
+	}()
 
 	go func() {
 		injector.InitializeGRPCServer(grpcL).Start()

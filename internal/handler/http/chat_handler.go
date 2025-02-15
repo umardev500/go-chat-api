@@ -47,6 +47,8 @@ func (h *chatHandler) PushMessage(c *fiber.Ctx) error {
 		return err
 	}
 
+	return c.JSON(request)
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
