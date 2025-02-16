@@ -62,10 +62,11 @@ func (s *chatService) PushMessage(ctx context.Context, pushChat *domain.PushMess
 	var csid = ""
 	var userIdContext = ctx.Value(constants.UserIdContextKey)
 	if userIdContext != nil {
-		// Get the csid from the context
-		// this needed for only send data from the internal app
-		// in the other hand if message coming from whatsapp client
-		// that will not containing the csid
+		// Retrieve the CSID from the context.
+		// This is required only for sending data from the internal app.
+		// On the other hand, if the message comes from a WhatsApp client,
+		// it will not contain the CSID.
+
 		csid = userIdContext.(string)
 	} else {
 		// Retrieve the CSID from and active chat session
