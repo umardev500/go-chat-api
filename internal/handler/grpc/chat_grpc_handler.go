@@ -21,7 +21,7 @@ func NewChatGrpHandler(chatService service.ChatService) *ChatGrpHandlerImpl {
 }
 
 func (c *ChatGrpHandlerImpl) SendMessage(ctx context.Context, req *proto.SendMessageRequest) (*proto.SendMessageResponse, error) {
-	var pushChat = domain.PushChat{}
+	var pushChat = domain.PushMessage{}
 
 	switch msg := req.Message.(type) {
 	case *proto.SendMessageRequest_TextMessage:

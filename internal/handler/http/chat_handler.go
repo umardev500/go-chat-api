@@ -44,7 +44,7 @@ func (h *chatHandler) FetchChatList(c *fiber.Ctx) error {
 }
 
 func (h *chatHandler) PushMessage(c *fiber.Ctx) error {
-	var request domain.PushChat
+	var request domain.PushMessage
 	if err := c.BodyParser(&request); err != nil {
 		return err
 	}

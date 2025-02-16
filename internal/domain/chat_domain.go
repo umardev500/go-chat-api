@@ -32,7 +32,7 @@ type CreateChat struct {
 	Messages []interface{} `json:"messages"`
 }
 
-type PushChat struct {
+type PushMessage struct {
 	Message  interface{}     `json:"message" validate:"required"`
 	Metadata *proto.Metadata `json:"metadata" validate:"required"`
 }

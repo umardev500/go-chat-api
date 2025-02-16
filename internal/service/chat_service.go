@@ -17,7 +17,7 @@ import (
 type ChatService interface {
 	FindChatList(ctx context.Context, jid, csid string) *model.Response
 	UpdateUnread(ctx context.Context, jid, csid string, value int64) *model.Response
-	PushMessage(ctx context.Context, pushChat *domain.PushChat) *model.Response
+	PushMessage(ctx context.Context, pushChat *domain.PushMessage) *model.Response
 }
 
 type chatService struct {
@@ -55,7 +55,7 @@ func (s *chatService) FindChatList(ctx context.Context, jid, csid string) *model
 	return utils.CrateResponse(fiber.StatusOK, "Find chat list", chats)
 }
 
-func (s *chatService) PushMessage(ctx context.Context, pushChat *domain.PushChat) *model.Response {
+func (s *chatService) PushMessage(ctx context.Context, pushChat *domain.PushMessage) *model.Response {
 	var broadcastMessage = domain.MessageBroadcastResponse{}
 
 	var jid = pushChat.Metadata.Jid
