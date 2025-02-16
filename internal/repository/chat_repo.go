@@ -74,7 +74,18 @@ func (r *chatRepository) FindChats(ctx context.Context, jid, csid string, status
 					{Key: "$last", Value: "$status"},
 				}},
 				{Key: "unread", Value: bson.D{
-					{Key: "$last", Value: "$unread"},
+					{Key: "$sum", Value: bson.D{
+						{Key: "$cond", Value: bson.A{
+							bson.D{
+								{Key: "$and", Value: bson.A{
+									bson.D{{Key: "$eq", Value: bson.A{"$messages.metadata.fromme", false}}},
+									bson.D{{Key: "$eq", Value: bson.A{"$messages.unread", true}}},
+								}},
+							},
+							1, // If condition is true, count as 1
+							0, // Otherwise, count as 0
+						}},
+					}},
 				}},
 				{Key: "message", Value: bson.D{
 					{Key: "$last", Value: "$messages"},
