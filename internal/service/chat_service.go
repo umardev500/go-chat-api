@@ -46,7 +46,7 @@ func (s *chatService) FindChatList(ctx context.Context, jid, csid string) *model
 		return utils.CrateResponse(fiber.StatusBadRequest, "Csid is required", nil)
 	}
 
-	chats, err := s.chatRepo.FindChats(ctx, jid, csid)
+	chats, err := s.chatRepo.FindChats(ctx, jid, csid, nil)
 	if err != nil {
 		fmt.Println(err)
 		return utils.CrateResponse(fiber.StatusInternalServerError, "Failed to find chat list", nil)
