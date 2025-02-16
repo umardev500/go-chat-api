@@ -11,7 +11,7 @@ import (
 
 type ChatRepository interface {
 	CheckChatIsExist(ctx context.Context, jid, csid string) error
-	FindChats(ctx context.Context, jid, csid string, status *domain.MessageType) ([]domain.Chat, error)
+	FindChats(ctx context.Context, jid, csid string, status *domain.ChatStatus) ([]domain.Chat, error)
 	CreateChat(ctx context.Context, jid, csid string, chat interface{}) (bool, error)
 	PushMessage(ctx context.Context, jid, csid string, message interface{}) error
 	UpdateUnread(ctx context.Context, jid, csid string, value int64) error
@@ -35,7 +35,7 @@ func (r *chatRepository) CheckChatIsExist(ctx context.Context, jid, csid string)
 	return err
 }
 
-func (r *chatRepository) FindChats(ctx context.Context, jid, csid string, status *domain.MessageType) ([]domain.Chat, error) {
+func (r *chatRepository) FindChats(ctx context.Context, jid, csid string, status *domain.ChatStatus) ([]domain.Chat, error) {
 	coll := r.mongDB.Db.Collection("messages")
 
 	filter := bson.D{
