@@ -23,9 +23,9 @@ message SendMessageResponse {
 message Metadata {
     string type = 1;
     string jid = 2;
-    bool fromMe = 3;
+    bool fromme = 3;
     string id = 4;
-    string pushName = 5;
+    string pushname = 5;
     int64 timestamp = 6;
 }
 

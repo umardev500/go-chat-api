@@ -33,7 +33,7 @@ func NewChatService(repo repository.ChatRepository) ChatService {
 
 func (s *chatService) broadcast(socketId string, chat *domain.MessageBroadcastResponse) {
 	if socketId == "" {
-		log.Error().Msg("Socket ID is empty")
+		log.Error().Msgf("Socket ID is empty: %s", socketId)
 		return
 	}
 
@@ -60,11 +60,13 @@ func (s *chatService) FindChatList(ctx context.Context, jid, csid string) *model
 	return utils.CrateResponse(fiber.StatusOK, "Find chat list", chats)
 }
 
-func (s *chatService) PushMessage(ctx context.Context, pushChat *domain.PushMessage) *model.Response {
-	var broadcastMessage = domain.MessageBroadcastResponse{}
+func (s *chatService) PushMessage(ctx context.Context, pushMessage *domain.PushMessage) *model.Response {
+	var broadcastMessage = domain.MessageBroadcastResponse{
+		Data: pushMessage,
+	}
 
-	var jid = pushChat.Metadata.Jid
-	var csid = ""
+	var jid = pushMessage.Metadata.Jid
+	var csid = "xyz" // dummy data only
 	var userIdContext = ctx.Value(constants.UserIdContextKey)
 	if userIdContext != nil {
 		// Retrieve the CSID from the context.
@@ -95,8 +97,9 @@ func (s *chatService) PushMessage(ctx context.Context, pushChat *domain.PushMess
 		Unread: 1, // Unread is 1 if the first message isn't from customer service
 		Messages: []interface{}{
 			map[string]interface{}{
-				"message":  pushChat.Message,
-				"metadata": &pushChat.Metadata,
+				"message":  pushMessage.Message,
+				"metadata": &pushMessage.Metadata,
+				"unread":   true,
 			},
 		},
 	}
@@ -107,20 +110,13 @@ func (s *chatService) PushMessage(ctx context.Context, pushChat *domain.PushMess
 	}
 
 	if exist {
-		err = s.chatRepo.PushMessage(ctx, jid, csid, pushChat)
+		err = s.chatRepo.PushMessage(ctx, jid, csid, pushMessage)
 		if err != nil {
 			return utils.CrateResponse(fiber.StatusInternalServerError, "Failed to push chat", nil)
 		}
 	} else {
-		// The data for broadcasting to the client
-		broadcastMessage.InitialChat = &domain.Chat{
-			Jid:     jid,
-			Csid:    csid,
-			Status:  string(domain.ChatStatusQueued),
-			Unread:  1,
-			Message: pushChat.Message,
-		}
-		broadcastMessage.Message = nil
+		// The initial data
+		broadcastMessage.IsInitial = true
 	}
 
 	s.broadcast(csid, &broadcastMessage)

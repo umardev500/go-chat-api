@@ -27,6 +27,7 @@ func (c *ChatGrpHandlerImpl) SendMessage(ctx context.Context, req *proto.SendMes
 	case *proto.SendMessageRequest_TextMessage:
 		pushChat.Message = msg.TextMessage
 		pushChat.Metadata = req.Metadata
+		pushChat.Unread = true
 		c.chatService.PushMessage(ctx, &pushChat)
 	case *proto.SendMessageRequest_ImageMessage:
 		fmt.Println(msg)

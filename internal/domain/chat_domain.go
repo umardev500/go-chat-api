@@ -38,9 +38,10 @@ type CreateChat struct {
 type PushMessage struct {
 	Message  interface{}     `json:"message" validate:"required"`
 	Metadata *proto.Metadata `json:"metadata" validate:"required"`
+	Unread   bool            `json:"unread"`
 }
 
 type MessageBroadcastResponse struct {
-	InitialChat *Chat       `json:"initialChat,omitempty"`
-	Message     interface{} `json:"message,omitempty"`
+	IsInitial bool        `json:"isInitial"`
+	Data      interface{} `json:"data,omitempty"`
 }
