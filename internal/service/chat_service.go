@@ -32,6 +32,11 @@ func NewChatService(repo repository.ChatRepository) ChatService {
 }
 
 func (s *chatService) broadcast(socketId string, chat *domain.MessageBroadcastResponse) {
+	if socketId == "" {
+		log.Error().Msg("Socket ID is empty")
+		return
+	}
+
 	conn := localUtils.WsGetClient(socketId)
 	if conn == nil {
 		log.Error().Msgf("Websocket client not found: %s", socketId)
@@ -71,8 +76,16 @@ func (s *chatService) PushMessage(ctx context.Context, pushChat *domain.PushMess
 	} else {
 		// Retrieve the CSID from and active chat session
 		// The session status must be marked as `active`
-		// One found, extract the CSID of the active session
+		// Once found, extract the CSID of the active session
+		chats, err := s.chatRepo.FindChats(ctx, jid, "", utils.ToPtr(domain.ChatStatusActive))
+		if err != nil {
+			log.Error().Err(err).Msg("Failed to find active chat")
+			return utils.CrateResponse(fiber.StatusInternalServerError, "Failed to find chat list", nil)
+		}
 
+		if len(chats) > 0 {
+			csid = chats[0].Csid
+		}
 	}
 
 	initialChatData := domain.CreateChat{

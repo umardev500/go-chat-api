@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/umardev500/common/database"
 	"github.com/umardev500/gochat/internal/domain"
@@ -38,8 +39,14 @@ func (r *chatRepository) CheckChatIsExist(ctx context.Context, jid, csid string)
 func (r *chatRepository) FindChats(ctx context.Context, jid, csid string, status *domain.ChatStatus) ([]domain.Chat, error) {
 	coll := r.mongDB.Db.Collection("messages")
 
-	filter := bson.D{
-		{Key: "csid", Value: csid},
+	if csid != "" && jid != "" && status != nil {
+		return nil, fmt.Errorf("invalid parameters")
+	}
+
+	filter := bson.D{}
+
+	if csid != "" {
+		filter = append(filter, bson.E{Key: "csid", Value: csid})
 	}
 
 	if jid != "" {

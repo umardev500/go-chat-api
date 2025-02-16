@@ -5,6 +5,7 @@ import "github.com/umardev500/gochat/api/proto"
 type ChatStatus string
 
 const (
+	ChatStatusActive ChatStatus = "active"
 	ChatStatusQueued ChatStatus = "queued"
 )
 
