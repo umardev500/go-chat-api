@@ -6,14 +6,18 @@ import (
 
 	"github.com/umardev500/gochat/api/proto"
 	"github.com/umardev500/gochat/internal/domain"
+	"github.com/umardev500/gochat/internal/service"
 )
 
 type ChatGrpHandlerImpl struct {
 	proto.UnimplementedWaServiceServer
+	chatService service.ChatService
 }
 
-func NewChatGrpHandler() *ChatGrpHandlerImpl {
-	return &ChatGrpHandlerImpl{}
+func NewChatGrpHandler(chatService service.ChatService) *ChatGrpHandlerImpl {
+	return &ChatGrpHandlerImpl{
+		chatService: chatService,
+	}
 }
 
 func (c *ChatGrpHandlerImpl) SendMessage(ctx context.Context, req *proto.SendMessageRequest) (*proto.SendMessageResponse, error) {
@@ -21,9 +25,9 @@ func (c *ChatGrpHandlerImpl) SendMessage(ctx context.Context, req *proto.SendMes
 
 	switch msg := req.Message.(type) {
 	case *proto.SendMessageRequest_TextMessage:
-		pushChat.Mt = domain.MessageTypeText
-		pushChat.Data.Message = msg
-		fmt.Println(pushChat)
+		pushChat.Message = msg.TextMessage
+		pushChat.Metadata = req.Metadata
+		c.chatService.PushMessage(ctx, &pushChat)
 	case *proto.SendMessageRequest_ImageMessage:
 		fmt.Println(msg)
 	}

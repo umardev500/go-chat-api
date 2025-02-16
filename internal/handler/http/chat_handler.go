@@ -4,9 +4,11 @@ import (
 	"context"
 	"time"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog/log"
+	"github.com/umardev500/common/constants"
 	"github.com/umardev500/gochat/internal/domain"
 	"github.com/umardev500/gochat/internal/service"
 	"github.com/umardev500/gochat/internal/utils"
@@ -47,19 +49,18 @@ func (h *chatHandler) PushMessage(c *fiber.Ctx) error {
 		return err
 	}
 
-	return c.JSON(request)
+	validate := validator.New()
+	if err := validate.Struct(&request); err != nil {
+		return err
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	jid := c.Query("jid")
-	csid := c.Query("csid")
+	userId := c.Locals(constants.UserIdContextKey)
+	ctx = context.WithValue(ctx, constants.UserIdContextKey, userId)
 
-	if jid == "" || csid == "" {
-		return fiber.ErrBadRequest
-	}
-
-	resp := h.chatService.PushMessage(ctx, jid, csid, &request)
+	resp := h.chatService.PushMessage(ctx, &request)
 
 	return c.Status(resp.StatusCode).JSON(resp)
 }

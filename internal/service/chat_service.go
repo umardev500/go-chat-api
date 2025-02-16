@@ -3,10 +3,10 @@ package service
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog/log"
+	"github.com/umardev500/common/constants"
 	"github.com/umardev500/common/model"
 	"github.com/umardev500/common/utils"
 	"github.com/umardev500/gochat/internal/domain"
@@ -17,7 +17,7 @@ import (
 type ChatService interface {
 	FindChatList(ctx context.Context, jid, csid string) *model.Response
 	UpdateUnread(ctx context.Context, jid, csid string, value int64) *model.Response
-	PushMessage(ctx context.Context, jid, csid string, pushChat *domain.PushChat) *model.Response
+	PushMessage(ctx context.Context, pushChat *domain.PushChat) *model.Response
 }
 
 type chatService struct {
@@ -31,7 +31,7 @@ func NewChatService(repo repository.ChatRepository) ChatService {
 	}
 }
 
-func (s *chatService) broadcast(socketId string, chat *domain.PushChat) {
+func (s *chatService) broadcast(socketId string, chat *domain.MessageBroadcastResponse) {
 	conn := localUtils.WsGetClient(socketId)
 	if conn == nil {
 		log.Error().Msgf("Websocket client not found: %s", socketId)
@@ -55,21 +55,36 @@ func (s *chatService) FindChatList(ctx context.Context, jid, csid string) *model
 	return utils.CrateResponse(fiber.StatusOK, "Find chat list", chats)
 }
 
-func (s *chatService) PushMessage(ctx context.Context, jid, csid string, pushChat *domain.PushChat) *model.Response {
-	if msgMap, ok := pushChat.Data.Message.(map[string]interface{}); ok {
-		if _, exists := msgMap["timestamp"]; !exists {
-			// Append timestamp if missing
-			// this needed if the message is come from our app not come from whatsapp
-			msgMap["timestamp"] = time.Now().UTC().Unix()
-		}
+func (s *chatService) PushMessage(ctx context.Context, pushChat *domain.PushChat) *model.Response {
+	var broadcastMessage = domain.MessageBroadcastResponse{}
+
+	var jid = pushChat.Metadata.Jid
+	var csid = ""
+	var userIdContext = ctx.Value(constants.UserIdContextKey)
+	if userIdContext != nil {
+		// Get the csid from the context
+		// this needed for only send data from the internal app
+		// in the other hand if message coming from whatsapp client
+		// that will not containing the csid
+		csid = userIdContext.(string)
+	} else {
+		// Retrieve the CSID from and active chat session
+		// The session status must be marked as `active`
+		// One found, extract the CSID of the active session
+
 	}
 
 	initialChatData := domain.CreateChat{
-		Jid:      jid,
-		Csid:     csid,
-		Status:   string(domain.ChatStatusQueued),
-		Unread:   1, // Unread is 1 if the first message isn't from customer service
-		Messages: []interface{}{pushChat.Data.Message},
+		Jid:    jid,
+		Csid:   csid,
+		Status: string(domain.ChatStatusQueued),
+		Unread: 1, // Unread is 1 if the first message isn't from customer service
+		Messages: []interface{}{
+			map[string]interface{}{
+				"message":  pushChat.Message,
+				"metadata": &pushChat.Metadata,
+			},
+		},
 	}
 
 	exist, err := s.chatRepo.CreateChat(ctx, jid, csid, initialChatData)
@@ -78,24 +93,23 @@ func (s *chatService) PushMessage(ctx context.Context, jid, csid string, pushCha
 	}
 
 	if exist {
-		err = s.chatRepo.PushMessage(ctx, jid, csid, pushChat.Data.Message)
+		err = s.chatRepo.PushMessage(ctx, jid, csid, pushChat)
 		if err != nil {
 			return utils.CrateResponse(fiber.StatusInternalServerError, "Failed to push chat", nil)
 		}
 	} else {
 		// The data for broadcasting to the client
-		pushChat.Data.IsInitial = true
-		pushChat.Data.InitialChat = &domain.Chat{
+		broadcastMessage.InitialChat = &domain.Chat{
 			Jid:     jid,
 			Csid:    csid,
 			Status:  string(domain.ChatStatusQueued),
 			Unread:  1,
-			Message: pushChat.Data.Message,
+			Message: pushChat.Message,
 		}
-		pushChat.Data.Message = nil
+		broadcastMessage.Message = nil
 	}
 
-	s.broadcast(csid, pushChat)
+	s.broadcast(csid, &broadcastMessage)
 
 	return utils.CrateResponse(fiber.StatusOK, "Push chat", nil)
 }

@@ -10,12 +10,9 @@ import (
 	grpcHandler "github.com/umardev500/gochat/internal/handler/grpc"
 )
 
-func ProvideChatGrpHandler() *grpcHandler.ChatGrpHandlerImpl {
-	wire.Build(grpcHandler.NewChatGrpHandler)
-	return nil
-}
+var ProvideChatGrpcHandler = wire.NewSet(grpcHandler.NewChatGrpHandler, ChatSet)
 
 func InitializeGRPCServer(lis net.Listener) *grpcCmd.GRPCServer {
-	wire.Build(ProvideChatGrpHandler, grpcCmd.NewGrpcServer)
+	wire.Build(ProvideChatGrpcHandler, grpcCmd.NewGrpcServer)
 	return nil
 }

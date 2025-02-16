@@ -1,5 +1,7 @@
 package domain
 
+import "github.com/umardev500/gochat/api/proto"
+
 type ChatStatus string
 
 const (
@@ -31,12 +33,11 @@ type CreateChat struct {
 }
 
 type PushChat struct {
-	Mt   string       `json:"mt"` // Message type
-	Data PushChatData `json:"data"`
+	Message  interface{}     `json:"message" validate:"required"`
+	Metadata *proto.Metadata `json:"metadata" validate:"required"`
 }
 
-type PushChatData struct {
-	IsInitial   bool        `json:"isInitial"`
+type MessageBroadcastResponse struct {
 	InitialChat *Chat       `json:"initialChat,omitempty"`
 	Message     interface{} `json:"message,omitempty"`
 }

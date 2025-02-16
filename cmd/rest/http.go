@@ -6,6 +6,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog/log"
+	"github.com/umardev500/common/middleware"
 	"github.com/umardev500/common/model"
 	"github.com/umardev500/common/router"
 )
@@ -27,6 +28,8 @@ func NewHttpServer(lis net.Listener, routes []model.Route) *HttpServer {
 }
 
 func (s *HttpServer) Start(ctx context.Context) {
+	s.server.Use(middleware.FiberCheckAuth())
+
 	router.NewFiberRouter(s.server, s.routes).Setup()
 
 	ch := make(chan error, 1)

@@ -23,7 +23,7 @@ message SendMessageResponse {
 message Metadata {
     string type = 1;
     string jid = 2;
-    string fromMe = 3;
+    bool fromMe = 3;
     string id = 4;
     string pushName = 5;
     int64 timestamp = 6;
