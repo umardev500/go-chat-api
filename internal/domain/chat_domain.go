@@ -8,12 +8,14 @@ const (
 	ChatStatusQueued ChatStatus = "queued"
 )
 
+type MessageType string
+
 // MessageType defines different message categories
 const (
-	MessageTypeText  string = "TEXT"
-	MessageTypeImage string = "IMAGE"
-	MessageTypeVideo string = "VIDEO"
-	MessageTypeAudio string = "AUDIO"
+	MessageTypeText  MessageType = "TEXT"
+	MessageTypeImage MessageType = "IMAGE"
+	MessageTypeVideo MessageType = "VIDEO"
+	MessageTypeAudio MessageType = "AUDIO"
 )
 
 type Chat struct {
