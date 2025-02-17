@@ -17,6 +17,7 @@ func (r *ChatRouteImpl) Api(router fiber.Router) {
 	chat.Get("/", r.chatHandler.FetchChatList)
 	chat.Patch("/update-unread", r.chatHandler.UpdateUnread)
 	chat.Post("/push-message", r.chatHandler.PushMessage)
+	chat.Get("/wa-picture/:jid", r.chatHandler.WaPicture)
 	chat.Get("/ws", middleware.WsMiddlewareCheckAuth, middleware.WsMiddlewareUpgrade, websocket.New(r.chatHandler.WsHandler))
 }
 

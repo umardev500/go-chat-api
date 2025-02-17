@@ -6,6 +6,7 @@ option go_package = "./api/proto";
 
 service WaService {
     rpc SendMessage(SendMessageRequest) returns (SendMessageResponse);
+    rpc Streaming(stream StreamingRequest) returns (stream StreamingResponse);
 }
 
 message SendMessageRequest {
@@ -36,4 +37,24 @@ message TextMessage {
 // Dummy message for testing
 message ImageMessage {
     string url = 1;
+}
+
+message StreamingRequest {
+    oneof message {
+        StreamingPictureRequest streamingPicture = 1;
+    }
+}
+
+message StreamingPictureRequest {
+    string url = 1;
+}
+
+message StreamingPictureResponse {
+    string jid = 1;
+}
+
+message StreamingResponse {
+    oneof message {
+        StreamingPictureResponse streamingPicture = 1;
+    }
 }

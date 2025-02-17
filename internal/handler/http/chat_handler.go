@@ -9,6 +9,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog/log"
 	"github.com/umardev500/common/constants"
+	commonUtils "github.com/umardev500/common/utils"
+	"github.com/umardev500/gochat/api/proto"
 	"github.com/umardev500/gochat/internal/domain"
 	"github.com/umardev500/gochat/internal/service"
 	"github.com/umardev500/gochat/internal/utils"
@@ -18,6 +20,7 @@ type ChatHandler interface {
 	FetchChatList(c *fiber.Ctx) error
 	PushMessage(c *fiber.Ctx) error
 	UpdateUnread(c *fiber.Ctx) error
+	WaPicture(c *fiber.Ctx) error
 	WsHandler(c *websocket.Conn)
 }
 
@@ -74,6 +77,26 @@ func (h *chatHandler) UpdateUnread(c *fiber.Ctx) error {
 	value := c.QueryInt("value", 1)
 
 	resp := h.chatService.UpdateUnread(ctx, jid, csid, int64(value))
+
+	return c.Status(resp.StatusCode).JSON(resp)
+}
+
+func (h *chatHandler) WaPicture(c *fiber.Ctx) error {
+	client := utils.GetStreamingClient()
+	if client == nil {
+		return c.JSON("No client")
+	}
+
+	client.ResChan <- &proto.StreamingResponse{
+		Message: &proto.StreamingResponse_StreamingPicture{
+			StreamingPicture: &proto.StreamingPictureResponse{
+				Jid: c.Params("jid"),
+			},
+		},
+	}
+
+	data := <-client.ReqChan
+	resp := commonUtils.CrateResponse(fiber.StatusOK, "Chat picture", data.GetStreamingPicture().Url)
 
 	return c.Status(resp.StatusCode).JSON(resp)
 }
