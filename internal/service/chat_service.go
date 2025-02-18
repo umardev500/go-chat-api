@@ -165,7 +165,7 @@ func (s *chatService) StreamingReceiver(req *proto.StreamingRequest) {
 	case *proto.StreamingRequest_StreamingPicture:
 		localUtils.GetStreamingClient().PicReqChan <- req
 	case *proto.StreamingRequest_StreamTyping:
-		s.streamTypingReceiver(msg)
+		s.broadcastTypingStatus(msg)
 	case *proto.StreamingRequest_StreamingOnline:
 		fmt.Println("Online message")
 	default:
@@ -173,7 +173,7 @@ func (s *chatService) StreamingReceiver(req *proto.StreamingRequest) {
 	}
 }
 
-func (s *chatService) streamTypingReceiver(req *proto.StreamingRequest_StreamTyping) {
+func (s *chatService) broadcastTypingStatus(req *proto.StreamingRequest_StreamTyping) {
 	csid := s.getCsId(context.Background(), req.StreamTyping.Jid)
 	s.broadcasetWs(csid, &domain.WebsocketBroadcast{
 		Type: string(domain.BroadcastTyping),
