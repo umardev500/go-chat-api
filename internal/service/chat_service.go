@@ -167,10 +167,21 @@ func (s *chatService) StreamingReceiver(req *proto.StreamingRequest) {
 	case *proto.StreamingRequest_StreamTyping:
 		s.broadcastTypingStatus(msg)
 	case *proto.StreamingRequest_StreamingOnline:
-		fmt.Println("Online message")
+		s.broadcastOnlineStatus(msg)
 	default:
 		fmt.Println("Unknown streaming message type")
 	}
+}
+
+func (s *chatService) broadcastOnlineStatus(req *proto.StreamingRequest_StreamingOnline) {
+	csid := s.getCsId(context.Background(), req.StreamingOnline.Jid)
+	s.broadcasetWs(csid, &domain.WebsocketBroadcast{
+		Type: string(domain.BroadcastOnline),
+		Data: &proto.StreamingOnlineRequest{
+			Jid:    req.StreamingOnline.Jid,
+			Online: req.StreamingOnline.Online,
+		},
+	})
 }
 
 func (s *chatService) broadcastTypingStatus(req *proto.StreamingRequest_StreamTyping) {

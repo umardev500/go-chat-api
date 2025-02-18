@@ -53,6 +53,7 @@ message StreamingPictureRequest {
 
 message StreamingOnlineRequest {
     string jid = 1;
+    bool online = 2;
 }
 
 message StreamTypingRequest {
