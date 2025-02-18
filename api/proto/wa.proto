@@ -42,11 +42,22 @@ message ImageMessage {
 message StreamingRequest {
     oneof message {
         StreamingPictureRequest streamingPicture = 1;
+        StreamingOnlineRequest streamingOnline = 2;
+        StreamTypingRequest streamTyping = 3;
     }
 }
 
 message StreamingPictureRequest {
     string url = 1;
+}
+
+message StreamingOnlineRequest {
+    string jid = 1;
+}
+
+message StreamTypingRequest {
+    string jid = 1;
+    bool typing = 2;
 }
 
 message StreamingPictureResponse {

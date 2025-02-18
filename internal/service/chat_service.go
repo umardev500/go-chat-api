@@ -9,6 +9,7 @@ import (
 	"github.com/umardev500/common/constants"
 	"github.com/umardev500/common/model"
 	"github.com/umardev500/common/utils"
+	"github.com/umardev500/gochat/api/proto"
 	"github.com/umardev500/gochat/internal/domain"
 	"github.com/umardev500/gochat/internal/repository"
 	localUtils "github.com/umardev500/gochat/internal/utils"
@@ -18,6 +19,7 @@ type ChatService interface {
 	FindChatList(ctx context.Context, jid, csid string) *model.Response
 	UpdateUnread(ctx context.Context, jid, csid string, value int64) *model.Response
 	PushMessage(ctx context.Context, pushChat *domain.PushMessage) *model.Response
+	Streaming(req *proto.StreamingRequest)
 }
 
 type chatService struct {
@@ -58,6 +60,23 @@ func (s *chatService) FindChatList(ctx context.Context, jid, csid string) *model
 	}
 
 	return utils.CrateResponse(fiber.StatusOK, "Find chat list", chats)
+}
+
+func (s *chatService) getCsId(ctx context.Context, jid string) string {
+	// Retrieve the CSID from and active chat session
+	// The session status must be marked as `active`
+	// Once found, extract the CSID of the active session
+	chats, err := s.chatRepo.FindChats(ctx, jid, "", utils.ToPtr(domain.ChatStatusActive))
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to find active chat")
+		return ""
+	}
+
+	if len(chats) > 0 {
+		return chats[0].Csid
+	}
+
+	return ""
 }
 
 func (s *chatService) PushMessage(ctx context.Context, pushMessage *domain.PushMessage) *model.Response {
@@ -122,6 +141,48 @@ func (s *chatService) PushMessage(ctx context.Context, pushMessage *domain.PushM
 	s.broadcast(csid, &broadcastMessage)
 
 	return utils.CrateResponse(fiber.StatusOK, "Push chat", nil)
+}
+
+func (s *chatService) broadcasetWs(socketId string, data interface{}) {
+	if socketId == "" {
+		log.Error().Msgf("Socket ID is empty: %s", socketId)
+		return
+	}
+
+	conn := localUtils.WsGetClient(socketId)
+	if conn == nil {
+		log.Error().Msgf("Websocket client not found: %s", socketId)
+		return
+	}
+
+	conn.WriteJSON(data)
+}
+
+func (s *chatService) Streaming(req *proto.StreamingRequest) {
+	switch msg := req.Message.(type) {
+	case *proto.StreamingRequest_StreamingPicture:
+		fmt.Println("Straming pic")
+		localUtils.GetStreamingClient().ReqChan <- req
+	case *proto.StreamingRequest_StreamTyping:
+		s.streamTyping(msg)
+	case *proto.StreamingRequest_StreamingOnline:
+		fmt.Println("Online message")
+	default:
+		fmt.Println("Unknown streaming message type")
+	}
+}
+
+func (s *chatService) streamTyping(req *proto.StreamingRequest_StreamTyping) {
+	fmt.Println("Typing message", req)
+
+	csid := s.getCsId(context.Background(), req.StreamTyping.Jid)
+	s.broadcasetWs(csid, &domain.WebsocketBroadcast{
+		Type: string(domain.PresenceStatusTyping),
+		Data: &proto.StreamTypingRequest{
+			Jid:    req.StreamTyping.Jid,
+			Typing: req.StreamTyping.Typing,
+		},
+	})
 }
 
 func (s *chatService) UpdateUnread(ctx context.Context, jid, csid string, value int64) *model.Response {

@@ -2,6 +2,13 @@ package domain
 
 import "github.com/umardev500/gochat/api/proto"
 
+type PresenceStatus string
+
+var (
+	PresenceStatusTyping PresenceStatus = "typing"
+	PresenceStatusOnline PresenceStatus = "online"
+)
+
 type ChatStatus string
 
 const (
@@ -44,4 +51,9 @@ type PushMessage struct {
 type MessageBroadcastResponse struct {
 	IsInitial bool        `json:"isInitial"`
 	Data      interface{} `json:"data,omitempty"`
+}
+
+type WebsocketBroadcast struct {
+	Type string      `json:"type"`
+	Data interface{} `json:"data,omitempty"`
 }
