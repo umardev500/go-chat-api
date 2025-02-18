@@ -58,6 +58,6 @@ func (h *ChatGrpHandlerImpl) Streaming(stream proto.WaService_StreamingServer) e
 			return err
 		}
 
-		h.chatService.Streaming(msg)
+		h.chatService.StreamingReceiver(msg)
 	}
 }

@@ -2,11 +2,12 @@ package domain
 
 import "github.com/umardev500/gochat/api/proto"
 
-type PresenceStatus string
+type BroadcastType string
 
 var (
-	PresenceStatusTyping PresenceStatus = "typing"
-	PresenceStatusOnline PresenceStatus = "online"
+	BroadcastTyping  BroadcastType = "typing"
+	BroadcastOnline  BroadcastType = "online"
+	BroadcastMessage BroadcastType = "message"
 )
 
 type ChatStatus string

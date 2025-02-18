@@ -19,7 +19,7 @@ type ChatService interface {
 	FindChatList(ctx context.Context, jid, csid string) *model.Response
 	UpdateUnread(ctx context.Context, jid, csid string, value int64) *model.Response
 	PushMessage(ctx context.Context, pushChat *domain.PushMessage) *model.Response
-	Streaming(req *proto.StreamingRequest)
+	StreamingReceiver(req *proto.StreamingRequest)
 }
 
 type chatService struct {
@@ -138,7 +138,10 @@ func (s *chatService) PushMessage(ctx context.Context, pushMessage *domain.PushM
 		broadcastMessage.IsInitial = true
 	}
 
-	s.broadcast(csid, &broadcastMessage)
+	s.broadcasetWs(csid, &domain.WebsocketBroadcast{
+		Type: string(domain.BroadcastMessage),
+		Data: &broadcastMessage,
+	})
 
 	return utils.CrateResponse(fiber.StatusOK, "Push chat", nil)
 }
@@ -158,13 +161,12 @@ func (s *chatService) broadcasetWs(socketId string, data interface{}) {
 	conn.WriteJSON(data)
 }
 
-func (s *chatService) Streaming(req *proto.StreamingRequest) {
+func (s *chatService) StreamingReceiver(req *proto.StreamingRequest) {
 	switch msg := req.Message.(type) {
 	case *proto.StreamingRequest_StreamingPicture:
-		fmt.Println("Straming pic")
 		localUtils.GetStreamingClient().ReqChan <- req
 	case *proto.StreamingRequest_StreamTyping:
-		s.streamTyping(msg)
+		s.streamTypingReceiver(msg)
 	case *proto.StreamingRequest_StreamingOnline:
 		fmt.Println("Online message")
 	default:
@@ -172,12 +174,10 @@ func (s *chatService) Streaming(req *proto.StreamingRequest) {
 	}
 }
 
-func (s *chatService) streamTyping(req *proto.StreamingRequest_StreamTyping) {
-	fmt.Println("Typing message", req)
-
+func (s *chatService) streamTypingReceiver(req *proto.StreamingRequest_StreamTyping) {
 	csid := s.getCsId(context.Background(), req.StreamTyping.Jid)
 	s.broadcasetWs(csid, &domain.WebsocketBroadcast{
-		Type: string(domain.PresenceStatusTyping),
+		Type: string(domain.BroadcastTyping),
 		Data: &proto.StreamTypingRequest{
 			Jid:    req.StreamTyping.Jid,
 			Typing: req.StreamTyping.Typing,
