@@ -113,7 +113,6 @@ func (s *chatService) PushMessage(ctx context.Context, pushMessage *domain.PushM
 		Jid:    jid,
 		Csid:   csid,
 		Status: string(domain.ChatStatusQueued),
-		Unread: 1, // Unread is 1 if the first message isn't from customer service
 		Messages: []interface{}{
 			map[string]interface{}{
 				"message":  pushMessage.Message,

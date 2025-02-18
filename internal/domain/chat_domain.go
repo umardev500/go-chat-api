@@ -39,7 +39,6 @@ type CreateChat struct {
 	Jid      string        `json:"jid"`
 	Csid     string        `json:"csid"`
 	Status   string        `json:"status"`
-	Unread   int           `json:"unread"`
 	Messages []interface{} `json:"messages"`
 }
 
