@@ -7,9 +7,9 @@ import (
 )
 
 type streaming struct {
-	Stream  proto.WaService_StreamingServer
-	ReqChan chan *proto.StreamingRequest
-	ResChan chan *proto.StreamingResponse
+	Stream     proto.WaService_StreamingServer
+	PicReqChan chan *proto.StreamingRequest
+	PicResChan chan *proto.StreamingResponse
 }
 
 var (
@@ -36,8 +36,8 @@ func SetStreamingClient(stream proto.WaService_StreamingServer) {
 	defer streamingMu.Unlock()
 
 	streamingClient = &streaming{
-		Stream:  stream,
-		ReqChan: make(chan *proto.StreamingRequest, 1),
-		ResChan: make(chan *proto.StreamingResponse, 1),
+		Stream:     stream,
+		PicReqChan: make(chan *proto.StreamingRequest, 1),
+		PicResChan: make(chan *proto.StreamingResponse, 1),
 	}
 }

@@ -164,7 +164,7 @@ func (s *chatService) broadcasetWs(socketId string, data interface{}) {
 func (s *chatService) StreamingReceiver(req *proto.StreamingRequest) {
 	switch msg := req.Message.(type) {
 	case *proto.StreamingRequest_StreamingPicture:
-		localUtils.GetStreamingClient().ReqChan <- req
+		localUtils.GetStreamingClient().PicReqChan <- req
 	case *proto.StreamingRequest_StreamTyping:
 		s.streamTypingReceiver(msg)
 	case *proto.StreamingRequest_StreamingOnline:

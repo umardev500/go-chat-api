@@ -87,7 +87,7 @@ func (h *chatHandler) WaPicture(c *fiber.Ctx) error {
 		return c.JSON("No client")
 	}
 
-	client.ResChan <- &proto.StreamingResponse{
+	client.PicResChan <- &proto.StreamingResponse{
 		Message: &proto.StreamingResponse_StreamingPicture{
 			StreamingPicture: &proto.StreamingPictureResponse{
 				Jid: c.Params("jid"),
@@ -95,7 +95,7 @@ func (h *chatHandler) WaPicture(c *fiber.Ctx) error {
 		},
 	}
 
-	data := <-client.ReqChan
+	data := <-client.PicReqChan
 	resp := commonUtils.CrateResponse(fiber.StatusOK, "Chat picture", data.GetStreamingPicture().Url)
 
 	return c.Status(resp.StatusCode).JSON(resp)

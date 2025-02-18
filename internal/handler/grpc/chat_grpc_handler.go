@@ -44,7 +44,7 @@ func (h *ChatGrpHandlerImpl) Streaming(stream proto.WaService_StreamingServer) e
 
 	go func() {
 		c := utils.GetStreamingClient()
-		for msg := range c.ResChan {
+		for msg := range c.PicResChan {
 			if err := c.Stream.Send(msg); err != nil {
 				log.Err(err).Msgf("failed to send streaming data to the client")
 			}
