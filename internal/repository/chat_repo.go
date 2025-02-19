@@ -104,7 +104,7 @@ func (r *chatRepository) FindChats(ctx context.Context, jid, csid string, status
 		},
 		bson.D{
 			{Key: "$sort", Value: bson.D{
-				{Key: "message.timestamp", Value: -1},
+				{Key: "message.metadata.timestamp", Value: -1},
 			}},
 		},
 	}
