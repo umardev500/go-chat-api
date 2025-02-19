@@ -42,6 +42,7 @@ func (h *ChatGrpHandlerImpl) Streaming(stream proto.WaService_StreamingServer) e
 	utils.SetStreamingClient(stream)
 	log.Info().Msg("✅ Streaming client is connected")
 
+	// Listener for pic request
 	go func() {
 		c := utils.GetStreamingClient()
 		for msg := range c.PicResChan {
